@@ -8,35 +8,28 @@
 
 'use strict';
 var path = require('path');
-module.exports = function(grunt) {
+module.exports = function (grunt) {
+    grunt.registerMultiTask('deploy_npm_package', 'Deploy package.json for development and production environment', function () {
+        var options = {
+                packageJsonRoot: this.data.packageJsonRoot || ".",
+                targets: this.data.targets || []
+            },
+            packageJson = grunt.file.readJSON("package.json");
 
-  // Please see the Grunt documentation for more information regarding task
-  // creation: http://gruntjs.com/creating-tasks
+        options.targets.forEach(function (target) {
+            var packageJsonContent = Object.create(packageJson),
+                targetPath = path.join(target.path, "package.json");
+            packageJsonContent.name = packageJsonContent.name + "-" + target.suffix;
 
-  grunt.registerMultiTask('deploy_npm_package', 'Deploy package.json for development and production environment', function() {
-    // Merge task-specific and/or target-specific options with these defaults.
-    var options = this.options({
-		packageJsonRoot: ".",
-		targets: [],
-        punctuation: '.',
-        separator: ', '
-    }),
-	packageJson = grunt.file.readJSON(path.join(options.packageJsonRoot, "package.json"));
+            if (!grunt.file.exists(target.path)) {
+                grunt.file.mkdir(target.path);
+            }
 
-	options.forEach(function(target){
-		var packageJson = Object.create(options.packageJson),
-		path = path.join(target.path, "package.json");
-		packageJson.name = packageJson.name + "-" + target.suffix;
-		
-		if (!grunt.file.exists(target.path)) {
-			grunt.file.mkdir(target.path);
-		}
-		
-		grunt.file.write(path, packageJson);
-        grunt.log.writeln('Created "' + path + '"');
-	});
-	
-	// Print a success message.
-	grunt.log.writeln('deploy_npm_package: done');
-  });
+            grunt.file.write(targetPath, packageJsonContent);
+            grunt.log.writeln('Created "' + targetPath + '"');
+        });
+
+        // Print a success message.
+        grunt.log.writeln('deploy_npm_package: done');
+    });
 };
