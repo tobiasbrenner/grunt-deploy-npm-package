@@ -17,15 +17,15 @@ module.exports = function (grunt) {
             packageJson = grunt.file.readJSON("package.json");
 
         options.targets.forEach(function (target) {
-            var packageJsonContent = Object.create(packageJson),
+            var packageJsonProjectName = target.suffix === ""? packageJson.name : packageJson.name + "-" + target.suffix,
+                packageJsonContent = Object.assign({}, packageJson, { name: packageJsonProjectName }),
                 targetPath = path.join(target.path, "package.json");
-            packageJsonContent.name = packageJsonContent.name + "-" + target.suffix;
 
             if (!grunt.file.exists(target.path)) {
                 grunt.file.mkdir(target.path);
             }
 
-            grunt.file.write(targetPath, packageJsonContent);
+            grunt.file.write(targetPath, JSON.stringify(packageJsonContent,null,2));
             grunt.log.writeln('Created "' + targetPath + '"');
         });
 
